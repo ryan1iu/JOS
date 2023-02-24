@@ -90,7 +90,7 @@ spin:	jmp	spin
 	.p2align	PGSHIFT		# force page alignment
 	.globl		bootstack
 bootstack:
-	.space		KSTKSIZE
+	.space		KSTKSIZE    # 在data段中分配一个KSTKSIZE大小的栈空间
 	.globl		bootstacktop   
 bootstacktop:
 

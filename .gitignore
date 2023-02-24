@@ -16,3 +16,6 @@
 /sol?/
 /myapi.key
 /.suf
+/.vscode
+/compile_flags.txt
+/session.vim

@@ -1,6 +1,6 @@
-// Stripped-down primitive printf-style formatting routines,
-// used in common by printf, sprintf, fprintf, etc.
-// This code is also used by both the kernel and user programs.
+// 精简的原始 printf 样式格式化例程，
+// 由 printf、sprintf、fprintf 等共同使用。
+// 这段代码也被内核和用户程序使用。
 
 #include <inc/types.h>
 #include <inc/stdio.h>
@@ -205,11 +205,9 @@ vprintfmt(void (*putch)(int, void*), void *putdat, const char *fmt, va_list ap)
 
 		// (unsigned) octal
 		case 'o':
-			// Replace this with your code.
-			putch('X', putdat);
-			putch('X', putdat);
-			putch('X', putdat);
-			break;
+			num = getuint(&ap, lflag);
+			base = 8;
+			goto number;
 
 		// pointer
 		case 'p':
