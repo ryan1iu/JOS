@@ -48,22 +48,22 @@
 #define PGSIZE		4096		// bytes mapped by a page
 #define PGSHIFT		12		// log2(PGSIZE)
 
-#define PTSIZE		(PGSIZE*NPTENTRIES) // bytes mapped by a page directory entry
+#define PTSIZE		(PGSIZE*NPTENTRIES) // 页目录所指向的物理页大小
 #define PTSHIFT		22		// log2(PTSIZE)
 
 #define PTXSHIFT	12		// offset of PTX in a linear address
 #define PDXSHIFT	22		// offset of PDX in a linear address
 
 // Page table/directory entry flags.
-#define PTE_P		0x001	// Present
-#define PTE_W		0x002	// Writeable
-#define PTE_U		0x004	// User
-#define PTE_PWT		0x008	// Write-Through
-#define PTE_PCD		0x010	// Cache-Disable
-#define PTE_A		0x020	// Accessed
-#define PTE_D		0x040	// Dirty
-#define PTE_PS		0x080	// Page Size
-#define PTE_G		0x100	// Global
+#define PTE_P		0x001	// 是否指向一个存在的物理页框（page frame）。如果该标志被设置，则表示该入口是有效的
+#define PTE_W		0x002	// 如果该标志被设置，则表示该页可以被写入，否则表示该页只能被读取
+#define PTE_U		0x004	// 指示该物理页框是否可由用户空间访问
+#define PTE_PWT		0x008	// 使用写直通策略（write-through）来更新缓存中的内存
+#define PTE_PCD		0x010	// 指示该物理页框是否可缓存。此处为禁止缓存
+#define PTE_A		0x020	// 该页框是否被访问过
+#define PTE_D		0x040	// 该页框是否被写入过
+#define PTE_PS		0x080	// 该页框的大小，如果被设置就是large page
+#define PTE_G		0x100	// 该页框是否是全局页（global page）。如果该标志被设置，则表示该页框是全局页，否则表示该页框只能被该进程使用。
 
 // The PTE_AVAIL bits aren't used by the kernel or interpreted by the
 // hardware, so user processes are allowed to set them arbitrarily.
@@ -150,19 +150,19 @@
 
 // Segment Descriptors
 struct Segdesc {
-	unsigned sd_lim_15_0 : 16;  // Low bits of segment limit
-	unsigned sd_base_15_0 : 16; // Low bits of segment base address
-	unsigned sd_base_23_16 : 8; // Middle bits of segment base address
-	unsigned sd_type : 4;       // Segment type (see STS_ constants)
-	unsigned sd_s : 1;          // 0 = system, 1 = application
-	unsigned sd_dpl : 2;        // Descriptor Privilege Level
-	unsigned sd_p : 1;          // Present
-	unsigned sd_lim_19_16 : 4;  // High bits of segment limit
-	unsigned sd_avl : 1;        // Unused (available for software use)
-	unsigned sd_rsv1 : 1;       // Reserved
-	unsigned sd_db : 1;         // 0 = 16-bit segment, 1 = 32-bit segment
-	unsigned sd_g : 1;          // Granularity: limit scaled by 4K when set
-	unsigned sd_base_31_24 : 8; // High bits of segment base address
+	unsigned sd_lim_15_0 : 16;  // 表示段的大小限制，低16位。
+	unsigned sd_base_15_0 : 16; // 表示段的起始地址的低16位。
+	unsigned sd_base_23_16 : 8; // 表示段的起始地址的中间8位。
+	unsigned sd_type : 4;       // 表示段的类型，采用4个二进制位来表示。可取值包括代码段、数据段、TSS（任务状态段）等。(see STS_ constants)
+	unsigned sd_s : 1;          // 取值为0或1，0表示是系统段，1表示是应用程序段。
+	unsigned sd_dpl : 2;        // 描述符所属代码或数据是运行在内核空间还是用户空间，采用2个二进制位来表示。
+	unsigned sd_p : 1;          // 0表示该段不存在，1表示该段存在。
+	unsigned sd_lim_19_16 : 4;  // 表示段的大小限制的高4位。
+	unsigned sd_avl : 1;        // 保留字段，可以由软件使用。
+	unsigned sd_rsv1 : 1;       // 保留字段。
+	unsigned sd_db : 1;         // 表示该段使用的是16位还是32位，取值为0或1，0表示使用16位，1表示使用32位。
+	unsigned sd_g : 1;          // 表示段的粒度，当该位为1时，段的大小限制被解释为4KB的倍数；否则，段的大小限制被解释为字节数。
+	unsigned sd_base_31_24 : 8; // 表示段的起始地址的高8位。
 };
 // Null segment
 #define SEG_NULL	{ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
@@ -181,25 +181,25 @@ struct Segdesc {
 #endif /* !__ASSEMBLER__ */
 
 // Application segment type bits
-#define STA_X		0x8	    // Executable segment
-#define STA_E		0x4	    // Expand down (non-executable segments)
-#define STA_C		0x4	    // Conforming code segment (executable only)
-#define STA_W		0x2	    // Writeable (non-executable segments)
-#define STA_R		0x2	    // Readable (executable segments)
-#define STA_A		0x1	    // Accessed
+#define STA_X		0x8	    // 可执行段
+#define STA_E		0x4	    // 向下扩展的非可执行段
+#define STA_C		0x4	    // 可执行的一致性代码段
+#define STA_W		0x2	    // 可写段（非可执行段）
+#define STA_R		0x2	    // 可读段（可执行段）
+#define STA_A		0x1	    // 已访问
 
 // System segment type bits
-#define STS_T16A	0x1	    // Available 16-bit TSS
-#define STS_LDT		0x2	    // Local Descriptor Table
-#define STS_T16B	0x3	    // Busy 16-bit TSS
-#define STS_CG16	0x4	    // 16-bit Call Gate
-#define STS_TG		0x5	    // Task Gate / Coum Transmitions
-#define STS_IG16	0x6	    // 16-bit Interrupt Gate
-#define STS_TG16	0x7	    // 16-bit Trap Gate
-#define STS_T32A	0x9	    // Available 32-bit TSS
-#define STS_T32B	0xB	    // Busy 32-bit TSS
+#define STS_T16A	0x1	    // 16 位可用TSS(任务状态段)，描述了一个任务的状态
+#define STS_LDT		0x2	    // 局部描述符表
+#define STS_T16B	0x3	    // 16 位忙碌TSS(任务状态段)
+#define STS_CG16	0x4	    // 16 位调用门,允许程序跳转到一个不同的代码段
+#define STS_TG		0x5	    // 任务门/任务状态段转换
+#define STS_IG16	0x6	    // 16-bit 中断门（Interrupt Gate）允许外部设备发送中断
+#define STS_TG16	0x7	    // 16 位陷阱门
+#define STS_T32A	0x9	    // 32 位可用任务状态段
+#define STS_T32B	0xB	    // 32 位忙碌任务状态段
 #define STS_CG32	0xC	    // 32-bit Call Gate
-#define STS_IG32	0xE	    // 32-bit Interrupt Gate
+#define STS_IG32	0xE	    // 32-bit 中断门（Interrupt Gate）允许外部设备发送中断
 #define STS_TG32	0xF	    // 32-bit Trap Gate
 
 

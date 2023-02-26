@@ -88,7 +88,8 @@ CFLAGS := $(CFLAGS) $(DEFS) $(LABDEFS) -O1 -fno-builtin -I$(TOP) -MD
 CFLAGS += -fno-omit-frame-pointer
 CFLAGS += -std=gnu99
 CFLAGS += -static
-CFLAGS += -Wall -Wno-format -Wno-unused -Werror -gstabs -m32
+# CFLAGS += -Wall -Wno-format -Wno-unused -Werror -gstabs -m32
+CFLAGS += -Wall -Wno-format -Wno-unused -Werror -m32
 # -fno-tree-ch prevented gcc from sometimes reordering read_ebp() before
 # mon_backtrace()'s function prologue on gcc version: (Debian 4.7.2-5) 4.7.2
 CFLAGS += -fno-tree-ch
@@ -121,8 +122,11 @@ all:
 	   $(OBJDIR)/lib/%.o $(OBJDIR)/fs/%.o $(OBJDIR)/net/%.o \
 	   $(OBJDIR)/user/%.o
 
-KERN_CFLAGS := $(CFLAGS) -DJOS_KERNEL -gstabs
-USER_CFLAGS := $(CFLAGS) -DJOS_USER -gstabs
+# KERN_CFLAGS := $(CFLAGS) -DJOS_KERNEL -gstabs
+KERN_CFLAGS := $(CFLAGS) -DJOS_KERNEL 
+# USER_CFLAGS := $(CFLAGS) -DJOS_USER -gstabs
+USER_CFLAGS := $(CFLAGS) -DJOS_USER 
+
 
 # Update .vars.X if variable X has changed since the last make run.
 #
@@ -159,21 +163,12 @@ qemu: $(IMAGES) pre-qemu
 	$(QEMU) $(QEMUOPTS)
 
 qemu-nox: $(IMAGES) pre-qemu
-	@echo "***"
-	@echo "*** Use Ctrl-a x to exit qemu"
-	@echo "***"
 	$(QEMU) -nographic $(QEMUOPTS)
 
 qemu-gdb: $(IMAGES) pre-qemu
-	@echo "***"
-	@echo "*** Now run 'make gdb'." 1>&2
-	@echo "***"
 	$(QEMU) $(QEMUOPTS) -S
 
 qemu-nox-gdb: $(IMAGES) pre-qemu
-	@echo "***"
-	@echo "*** Now run 'make gdb'." 1>&2
-	@echo "***"
 	$(QEMU) -nographic $(QEMUOPTS) -S
 
 print-qemu:

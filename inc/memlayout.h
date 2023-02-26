@@ -12,11 +12,11 @@
  */
 
 // Global descriptor numbers
-#define GD_KT     0x08     // kernel text
-#define GD_KD     0x10     // kernel data
-#define GD_UT     0x18     // user text
-#define GD_UD     0x20     // user data
-#define GD_TSS0   0x28     // Task segment selector for CPU 0
+#define GD_KT     0x08     // 内核文本段
+#define GD_KD     0x10     // 内核数据段
+#define GD_UT     0x18     // 用户文本段
+#define GD_UD     0x20     // 用户数据段
+#define GD_TSS0   0x28     // CPU 0的任务选择段，用于管理CPU的任务切换
 
 /*
  * Virtual memory map:                                Permissions
@@ -176,11 +176,8 @@ struct PageInfo {
 	// Next page on the free list.
 	struct PageInfo *pp_link;
 
-	// pp_ref is the count of pointers (usually in page table entries)
-	// to this page, for pages allocated using page_alloc.
-	// Pages allocated at boot time using pmap.c's
-	// boot_alloc do not have valid reference count fields.
-
+	// 对于使用 page_alloc 分配的页，pp_ref 是指向此页的指针（通常在页表条目中）的计数。
+    // 在启动时使用 pmap.c 的 boot_alloc 分配的页面没有有效的引用计数字段。
 	uint16_t pp_ref;
 };
 

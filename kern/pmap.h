@@ -3,7 +3,7 @@
 #ifndef JOS_KERN_PMAP_H
 #define JOS_KERN_PMAP_H
 #ifndef JOS_KERNEL
-# error "This is a JOS kernel header; user programs should not #include it"
+// # error "This is a JOS kernel header; user programs should not #include it"
 #endif
 
 #include <inc/memlayout.h>
@@ -25,12 +25,13 @@ extern pde_t *kern_pgdir;
  */
 #define PADDR(kva) _paddr(__FILE__, __LINE__, kva)
 
+
 static inline physaddr_t
 _paddr(const char *file, int line, void *kva)
 {
 	if ((uint32_t)kva < KERNBASE)
 		_panic(file, line, "PADDR called with invalid kva %08lx", kva);
-	return (physaddr_t)kva - KERNBASE;
+	return (physaddr_t)kva - KERNBASE;  // 将虚拟地址转化为物理地址
 }
 
 /* This macro takes a physical address and returns the corresponding kernel
@@ -42,7 +43,7 @@ _kaddr(const char *file, int line, physaddr_t pa)
 {
 	if (PGNUM(pa) >= npages)
 		_panic(file, line, "KADDR called with invalid pa %08lx", pa);
-	return (void *)(pa + KERNBASE);
+	return (void *)(pa + KERNBASE);  // 将物理地址转化为虚拟地址
 }
 
 
