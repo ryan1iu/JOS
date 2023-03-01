@@ -10,7 +10,7 @@ struct Elf {
   uint16_t e_machine;
   uint32_t e_version;
   uint32_t e_entry;
-  uint32_t e_phoff;
+  uint32_t e_phoff; // 表示程序头表（Program Header Table）在文件中的偏移量
   uint32_t e_shoff;
   uint32_t e_flags;
   uint16_t e_ehsize;
